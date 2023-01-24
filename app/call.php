@@ -1,19 +1,25 @@
 <?php
 $data = json_decode(file_get_contents('php://input'), true);
 
-myPhpFunction($data['field'],$data['order']);
-function myPhpFunction($field,$order) {
-
+myPhpFunction($data['field'],$data['order'],$data['fields'],$data['field_search'],$data['value']);
+function myPhpFunction($field=NULL, $order=NULL, $fields=NULL, $field_search=NULL, $value=NULL) {
+    echo $field_search;
+    echo $value;
 # Connect to DB
 $conn = mysqli_connect("db", "testuser", "password", "testdb");
 # Get the fields
 $result = mysqli_query($conn, "SHOW COLUMNS FROM Sum_of_Tuitionfee_in");
 $columns = array();
-    
-while ($row = mysqli_fetch_assoc($result)) {
-    $columns[] = $row['Field'];
+
+if (empty($fields)){
+    while ($row = mysqli_fetch_assoc($result)) {
+        $columns[] = $row['Field'];
+    }
+    $columns = implode(',', $columns);
+}else {
+    $columns = $fields;
 }
-$columns = implode(',', $columns);
+
 
 # Declare the filter Variables
 $limit = 10;
@@ -23,6 +29,11 @@ if (empty($field) || empty($order)){
 }else {
     $sql = "SELECT $columns FROM `Sum_of_Tuitionfee_in` order by $field $order LIMIT $limit";
 }
+if (!empty($field_search) && !empty($value)){
+    $sql = "SELECT $columns FROM `Sum_of_Tuitionfee_in` where $field_search in ('$value') LIMIT $limit";
+}
+echo $sql;
+
 $result = mysqli_query($conn, $sql);
 $column_array = explode(',', $columns);
 
